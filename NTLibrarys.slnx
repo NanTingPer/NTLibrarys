@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/AgentNexus/">
     <Project Path="AgentNexus.Core/AgentNexus.Core.csproj" Id="e241b23d-a763-4c03-aeae-e0df57bc2c02" />
+    <Project Path="AgentNexus.Examples/AgentNexus.Examples.csproj" Id="dc3aabbb-c175-4a3a-97b9-9546004eddc6" />
     <Project Path="AgentNexus.Providers/AgentNexus.Providers.csproj" Id="bae70974-663e-4c35-ad6a-d17a79c4a0f4" />
     <Project Path="AgentNexus.Tooling/AgentNexus.Tooling.csproj" Id="83a4a05a-b750-43c4-9bbd-78341943be9b" />
   </Folder>
