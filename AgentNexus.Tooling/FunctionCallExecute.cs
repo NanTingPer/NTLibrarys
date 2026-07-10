@@ -1,7 +1,5 @@
 ﻿using AgentNexus.Core.Models;
 using AgentNexus.Core.Models.Return;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -28,14 +26,14 @@ public static class FunctionCallExecute
     /// <para> 全局方法表 </para>
     /// 全部方法调用的实例，可以直接调用
     /// </summary>
-    public readonly static Dictionary<string, FunctionCallDelegate> Instance = [];
+    public readonly static Dictionary<MethodInfo, FunctionCallDelegate> Instance = [];
 
     private static volatile bool _isInit = false;
 
     /// <summary>
     /// 初始话全局方法表
     /// </summary>
-    public static void InitFunctionCalls()
+    public static void InitFunctionCalls(Assembly? assembly = null)
     {
         if(_isInit == true) {
             return;
@@ -43,11 +41,12 @@ public static class FunctionCallExecute
         _isInit = true;
 
         var assemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        var filename = Assembly.GetEntryAssembly()!.GetName().Name;
+        var filename = GetAssembly(assembly).GetName().Name;
         var dsAgentXmlDocmentFile = Path.Combine(assemblyDirectory!, filename + ".xml");
         var methodXML = new MethodXML(dsAgentXmlDocmentFile);
-        var autoRegionFunctionTypes = typeof(FunctionCallExecute).Assembly.GetTypes()
-            .Where(type => type.GetInterface(nameof(IAutoRegionFunction)) != null);
+
+        IEnumerable<Type> autoRegionFunctionTypes = GetAssembly(assembly).GetTypes()
+                .Where(type => type.GetInterface(nameof(IAutoRegionFunction)) != null);
 
         var functionCallMethodInfos = autoRegionFunctionTypes.Select(type => {
             return type.GetMethods().Where(methodinfo => {
@@ -72,7 +71,7 @@ public static class FunctionCallExecute
 
         //如果使用CreateDelegate，那么他的第一个参数是委托类型
         foreach (var @delegate in functionCallMethodInfos.Select(m => (m, CreateAdapter(m)))) {
-            Instance[@delegate.m.Name] = @delegate.Item2;
+            Instance[@delegate.m] = @delegate.Item2;
         }
     }
 
@@ -165,23 +164,18 @@ public static class FunctionCallExecute
     /// <param name="methodName"> 全局方法名称 </param>
     /// <param name="params"> 参数列表 </param>
     /// <returns></returns>
-    private static async Task<object?> DynamicInvoke(Dictionary<string, FunctionCallDelegate> tools, string methodName, params object[] @params)
+    private static async Task<object?> DynamicInvoke(Dictionary<MethodInfo, FunctionCallDelegate> tools, MethodInfo method, params object[] @params)
     {
         //if (!Instance.TryGetValue(methodName, out var value)) {
-        if (!tools.TryGetValue(methodName, out var value)) {
+        if (!tools.TryGetValue(method, out var value)) {
             return "不存在的方法, 请先使用工具列表获取工具";
         }
 
-        Console.WriteLine("调用方法: " + methodName);
-
         var result = value.Invoke(@params);
         if (result == null || result is not Task task) {
-            //等于null 并且非Task
-            Console.WriteLine("非异步方法, 直接返回结果!");
             return result;
         }
 
-        Console.WriteLine("异步方法，进行等待!");
         await task;
         //泛型Task需要获取类型
         var resultType = result.GetType();
@@ -231,7 +225,7 @@ public static class FunctionCallExecute
     /// <param name="tools"> 方法表 </param>
     /// <param name="call"> 要被调用的方法 </param>
     /// <returns></returns>
-    public static async Task<object> DynamicInvoke(Dictionary<string, FunctionCallDelegate> tools, ToolCall call)
+    public static async Task<object> DynamicInvoke(Dictionary<MethodInfo, FunctionCallDelegate> tools, ToolCall call)
     {
         var function = call.Function;
         if (function == null) {
@@ -239,17 +233,46 @@ public static class FunctionCallExecute
         }
 
         List<object> parms = [];
-        foreach (var parm in function.ArgumentsJsonObject) {
-            parms.Add(parm.Value!.ToString());
+        var functionName = function.Name;
+        MethodInfo? origInfo = null;
+
+        foreach (var item in tools) {
+            if (item.Key.Name == functionName) {
+                origInfo = item.Key;
+                break;
+            }
+        }
+
+        if (origInfo == null) {
+            return "工具调用中，无效工具名";
+        }
+
+        var methodParameterInfos = origInfo!.GetParameters();
+
+        for (int i = 0; i < function.ArgumentsJsonObject.Count; i++) {
+            parms.Add(function.ArgumentsJsonObject[i].Deserialize(methodParameterInfos[i].ParameterType)!);
         }
 
         object? callResult;
         try {
-            callResult = await DynamicInvoke(tools, function.Name ?? "", [.. parms]);
+            callResult = await DynamicInvoke(tools, origInfo, [.. parms]);
         } catch (Exception exception) {
             return exception.Message;
         }
 
         return callResult ?? "工具调用完成了!";
+    }
+
+    /// <summary>
+    /// 如果给定的程序集为null，那么返回当前调用方的程序集
+    /// </summary>
+    /// <returns></returns>
+    private static Assembly GetAssembly(Assembly? assembly = null)
+    {
+        if (assembly == null) {
+            return Assembly.GetCallingAssembly();
+        } else {
+            return assembly;
+        }
     }
 }

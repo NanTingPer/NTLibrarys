@@ -24,7 +24,7 @@ public abstract class DsFunctionChat<TSelf> : DsChatStream
     /// <summary>
     /// 全部工具方法
     /// </summary>
-    public readonly static Dictionary<string, FunctionCallDelegate> FunctionTools = [];
+    public readonly static Dictionary<MethodInfo, FunctionCallDelegate> FunctionTools = [];
     /// <summary>
     /// 自动初始化<see cref="MethodXML"/>,会尝试自动获取xml文档
     /// </summary>
@@ -32,7 +32,7 @@ public abstract class DsFunctionChat<TSelf> : DsChatStream
     static DsFunctionChat()
     {
         var type = typeof(TSelf);
-        var assemblyName = type.Namespace?.Split('.')[0];
+        var assemblyName = type.Assembly.GetName().Name/*.Namespace?.Split('.')[0]*/;
         if (assemblyName == null) {
             throw new Exception($"{type.FullName}在初始化时发生错误，其不属于任何程序集");
         }
@@ -133,7 +133,7 @@ public abstract class DsFunctionChat<TSelf> : DsChatStream
 
         //如果使用CreateDelegate，那么他的第一个参数是委托类型
         foreach (var @delegate in functionMethods.Select(m => (m, CreateAdapter(m)))) {
-            FunctionTools[@delegate.m.Name] = @delegate.Item2;
+            FunctionTools[@delegate.m] = @delegate.Item2;
         }
     }
 

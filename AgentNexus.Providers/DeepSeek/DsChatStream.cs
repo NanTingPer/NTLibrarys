@@ -70,7 +70,7 @@ public class DsChatStream : DsChat
     /// <param name="dsroleType"> 此次对话的主体 </param>
     /// <param name="token"> 取消令牌 </param>
     /// <returns></returns>
-    public async IAsyncEnumerable<ReturnValue> Chat(string content, string? tool_call_id, DsRoleType dsroleType = DsRoleType.user, CancellationToken? token = null)
+    public async IAsyncEnumerable<ReturnValue> Chat(string content, string? tool_call_id = null, DsRoleType dsroleType = DsRoleType.user, CancellationToken? token = null)
     {
         #region 将对话的消息加入到消息上下文
         var message = new Message(content, dsroleType);
