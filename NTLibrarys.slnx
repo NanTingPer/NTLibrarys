@@ -5,6 +5,6 @@
     <Project Path="AgentNexus.Providers/AgentNexus.Providers.csproj" Id="bae70974-663e-4c35-ad6a-d17a79c4a0f4" />
     <Project Path="AgentNexus.Tooling/AgentNexus.Tooling.csproj" Id="83a4a05a-b750-43c4-9bbd-78341943be9b" />
   </Folder>
-  <Project Path="NTLibray.Reflect.Console/NTLibray.Reflect.Console.csproj" Id="ddc04469-8cc0-4ad1-9cd6-e112d5fdae73" />
+  <Project Path="NTLibray.Reflect.Console/NTLibray.Reflect.ConsoleRun.csproj" Id="ddc04469-8cc0-4ad1-9cd6-e112d5fdae73" />
   <Project Path="NTLibray.Reflect/NTLibray.Reflect.csproj" Id="c835dd48-97ba-48ea-b7dd-1908ffb56273" />
 </Solution>

@@ -4,4 +4,5 @@ using System.Reflection;
 using System.Reflection.Emit;
 
 Console.WriteLine("Hello, World!");
-NTLibrayReflectEmitTest.Run();
+//NTLibrayReflectEmitTest.Run();
+NTLibrayReflectExpressionPropertyCallTest.Run();
