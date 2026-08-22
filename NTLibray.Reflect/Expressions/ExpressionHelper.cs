@@ -25,6 +25,21 @@ public static class ExpressionHelper
             return _instanceGetCache.GetOrCreate(propertyInfo);
     }
 
+    public static Func<object> AccessStaticGetDelegateByCache(this PropertyInfo propertyInfo)
+        => _staticGetCache.GetOrCreate(propertyInfo);
+    public static Func<object, object> AccessInstanceGetDelegateByCache(this PropertyInfo propertyInfo)
+        => _instanceGetCache.GetOrCreate(propertyInfo);
+    public static Action<object> AccessStaticSetDelegateByCache(this PropertyInfo propertyInfo)
+        => _staticSetCache.GetOrCreate(propertyInfo);
+    public static Action<object, object> AccessInstanceSetDelegateByCache(this PropertyInfo propertyInfo)
+        => _instanceSetCache.GetOrCreate(propertyInfo);
+
+
+    /// <summary>
+    /// 静态 <see cref="Action{Object}"/> 实例 <see cref="Action{Object, Object}"/>
+    /// </summary>
+    /// <param name="propertyInfo"></param>
+    /// <returns></returns>
     public static object AccessSetDelegateByCache(this PropertyInfo propertyInfo)
     {
         var get = propertyInfo.SetMethod;
@@ -37,12 +52,13 @@ public static class ExpressionHelper
 
     public static void ExpSetValue(this PropertyInfo propertyInfo, object? @this, object? value)
     {
-        if((propertyInfo.GetMethod?.IsStatic ?? false) || (propertyInfo.SetMethod?.IsStatic ?? false)) {
-            _staticSetCache.GetOrCreate(propertyInfo)(value!);
-            return;
-        } else {
-            _instanceSetCache.GetOrCreate(propertyInfo)(@this!, value!);
-        }
+        propertyInfo.SetValue(@this, value);
+        //if((propertyInfo.GetMethod?.IsStatic ?? false) || (propertyInfo.SetMethod?.IsStatic ?? false)) {
+        //    _staticSetCache.GetOrCreate(propertyInfo)(value!);
+        //    return;
+        //} else {
+        //    _instanceSetCache.GetOrCreate(propertyInfo)(@this!, value!);
+        //}
     }
 
     // /// <summary>
