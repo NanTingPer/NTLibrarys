@@ -3,7 +3,7 @@
 namespace NTLibray.Reflect.Expressions;
 
 /// <summary>
-/// 属性缓存抽象（Get）。
+/// 属性缓存抽象。
 /// </summary>
 public abstract class PropertyCacheAbstract<TFunc>
     where TFunc : Delegate
